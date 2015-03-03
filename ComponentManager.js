@@ -47,8 +47,10 @@ function Consolidate(newLayout,oldLayout){
 	var dLen = dif.length;
 	for(var i = 0; i < dLen;i++){
 		console.log("CLEANING UP: ",dif[i]);
-		this.subComponents[dif[i]].cleanup();
-		delete this.subComponents[dif[i]];
+		if(this.subComponents[dif[i]]) {
+			this.subComponents[dif[i]].cleanup();
+			delete this.subComponents[dif[i]];
+		}
 	}
 	console.log("List of Components",this.subComponents);
 

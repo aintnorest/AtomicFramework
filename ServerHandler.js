@@ -73,6 +73,7 @@ function makeCorsRequest(u,type,promise,data,err,pageId){
     	function fullFillPromise(d,fullD){
     		if(pageId === undefined) promise(d,fullD);
     		else if(pageId === M.pageId) promise(d,fullD);
+    		else console.log("ROUTE CHANGED I WAS UNABLE TO COMPLETE MY PROMISE");
     	};
 	}
 	sendRequest();
@@ -89,11 +90,9 @@ function ServerHandler(){
         M.initialized = true;
         channel.publish("Login",true);
         runQue();
-        console.log("DID I GET A SNONCE,",e)
 	}, cnStrng);
 
 	function getHash(d){
-		console.log("Fired getHash")
 		var hash = hmacSHA256(d.username, d.password);
 		var hash_base64 = encBase64.stringify(hash);
 		var nonce_hash = hmacSHA256(hash_base64, M.snonce + M.cnonce);
@@ -104,6 +103,7 @@ function ServerHandler(){
 	}
 	var D;
 	var Ready = false;
+	console.log("SERVER HANDLER IS READY");
 
 	var LoginSub = channel.subscribe("Login", function(d){
 		/* Ensure Nonce before Login Attempt */
@@ -163,7 +163,6 @@ function queRequest(data,type){
 }
 //
 function runQue(){
-	console.log("RUN THE QUE",M.que);
 	for(var i = 0; i < M.que.length;i++){
 		fireRequest(M.que[i].d, M.que[i].t);
 	}
@@ -181,17 +180,13 @@ function runQue(){
  */
 //
 function requestHandler(data, type){
-	console.log("GETTING THE REQEST")
 	data.type = type;
 	if(data.force === undefined){
-		console.log("FORCE UNDEFINED");
 		if(!data.page) data.page = M.pageId;
 		queRequest(data, type);
 	} else if(data.force === true) {
-		console.log("FORCE TRUE");
 		fireRequest(data, type);
 	} else if(data.force === false) {
-		console.log("FORCE FALSE");
 		queRequest(data, type);
 	}
 }

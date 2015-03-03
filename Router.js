@@ -16,7 +16,7 @@ function openRoute(url,lvl){
 			defaultOtherwise();
 		}
 	}
-	else console.log("That Route Did Not Exist");
+	else defaultOtherwise();
 }
 //Handler
 function Handler(level){
@@ -58,7 +58,7 @@ function Init(reRoute){
 	// Send a cleanup then send a change then once a ready is received fire next level
 	function requestChange(u, i, pu){
 		if(!u[i]) return;
-		if(pu[i]){ if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup(); }
+		if(pu[i]){ if(routeMap[i][pu[i]]){ if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup(); }}
 		channel.publish("page." + i + ".change",u[i]);
 		var sub = channel.subscribe("page." + i + ".ready",function(d){
 			console.log("New Page finished moving to next level");
