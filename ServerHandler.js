@@ -89,6 +89,7 @@ function ServerHandler(){
         M.snonce = e.snonce;
         M.initialized = true;
         channel.publish("Login",true);
+        channel.publish("Ready");
         runQue();
 	}, cnStrng);
 
@@ -103,9 +104,9 @@ function ServerHandler(){
 	}
 	var D;
 	var Ready = false;
-	console.log("SERVER HANDLER IS READY");
 
 	var LoginSub = channel.subscribe("Login", function(d){
+		console.log("ATTEMPINT LOGIN THIS IS WHAT WAS PASSED",d)
 		/* Ensure Nonce before Login Attempt */
 		if(typeof d === "object") D = d;
 		if(d === true) Ready = true;
@@ -118,6 +119,7 @@ function ServerHandler(){
 					url: "views/v1/session",
 					force: false,
 					promise: function(e,ext){
+						console.log("CONSOLE THE LOGIN DATA FOR VALIDATION",e)
 						if(count > 5){
 							count = 0;
 							channel.publish("post",{
@@ -127,12 +129,12 @@ function ServerHandler(){
 								promise: function(){ pollLogin(); }
 							});
 						} else {
-							if(e.authenticated) console.log("Loged In",e);
+							if(e.authenticated) channel.publish("Success",e);
 							else {
 								if(e.auth_message === ""){
 									_.delay(pollLogin,250);
 									count++;
-								} else  console.log("ATTEMPT TO LOGIN FAILED",e);
+								} else  channel.publish("Failed");
 							}
 						}
 					}

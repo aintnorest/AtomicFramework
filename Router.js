@@ -6,10 +6,12 @@ var channel = postal.channel("Router");
 var initialized = false;
 var defaultOtherwise;
 //Open Route
-function openRoute(url,lvl){
+function openRoute(url,lvl,q){
 	if(routeMap[lvl][url]){
 		if(routeMap[lvl][url].check()){
-			routeMap[lvl][url].then();
+			routeMap[lvl][url].then(q);
+			channel.publish("page."+lvl+".ready");
+			console.log("LOADING PAGE: ",url," : ",lvl," | DATA:",q);
 		} else if(typeof routeMap[lvl][url].otherwise === "function"){
 		 	routeMap[lvl][url].otherwise();
 		} else {
@@ -27,9 +29,8 @@ function Handler(level){
 	 	delete routeMap[lvl];
 	 	routeMap[lvl] = {};
 	}
-	routeMap[lvl].changeSub = channel.subscribe("page." + lvl + ".change",function(url){
-		openRoute(url,lvl);
-		console.log("LOADING PAGE: ",url," : ",lvl);
+	routeMap[lvl].changeSub = channel.subscribe("page." + lvl + ".change",function(data){
+		openRoute(data.url,lvl,data.query);
 	});
 	
 	return {
@@ -55,23 +56,42 @@ function Handler(level){
 //
 function Init(reRoute){
 	defaultOtherwise = (reRoute) ? reRoute : function(){console.log("Setup a Default Otherwise Route")};
-	// Send a cleanup then send a change then once a ready is received fire next level
-	function requestChange(u, i, pu){
-		if(!u[i]) return;
-		if(pu[i]){ if(routeMap[i][pu[i]]){ if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup(); }}
-		channel.publish("page." + i + ".change",u[i]);
-		var sub = channel.subscribe("page." + i + ".ready",function(d){
-			console.log("New Page finished moving to next level");
+	//
+	function listenForReady(u,i,pu,q){
+		var sub = channel.subscribe("page." + i + ".ready", function(){
+			console.log("New Page finished moving to next level",i);
 			sub.unsubscribe();
-			requestChange(u,i + 1);
+			requestChange(u,i + 1,pu,q);
 		});
+	}
+	// Send a cleanup then send a change then once a ready is received fire next level
+	function requestChange(u, i, pu, q){
+		if(!u[i]) return;
+		if(pu[i]){
+			console.log(routeMap,pu,i)
+		 	if(routeMap[i][pu[i]]){
+		 	 	if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup();
+		 	}
+		}
+		console.log("THIS IS WHERE IM PUSHING IT THROUGH Q I: ",q,i);
+		setTimeout(function(){
+			channel.publish("page." + i + ".change",{url:u[i], query:q[i]});
+		},1);
+		listenForReady(u,i,pu,q);
 	}
 	//URL ITERATION
 	function iterateURL(url, pu){
 		var u = url.split("/");
+		var q = [];
 		var len = u.length;
 		var divergencePoint;
-console.log("PU",pu,"u",u)
+		//
+		for(var i=0;i < len;i++){
+			var splitVersion = u[i].split("?");
+			u[i] = splitVersion[0];
+			q.push( (splitVersion[1]) ? splitVersion[1] : undefined );
+		}
+		//
 		for(var i = 0; i < len; i++){
 
 			if(pu[i] !== u[i]){
@@ -79,8 +99,9 @@ console.log("PU",pu,"u",u)
 				break;
 			}
 		}
-		if(divergencePoint !== undefined) requestChange(u,divergencePoint,pu);
-		if(divergencePoint === undefined) requestChange(u,0,pu);
+		console.log("u: ",u," p: ",pu);
+		if(divergencePoint !== undefined) requestChange(u,divergencePoint,pu,q);
+		if(divergencePoint === undefined) requestChange(u,0,pu,q);
 		return u;
 	}
 	//
