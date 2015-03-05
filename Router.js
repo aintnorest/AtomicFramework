@@ -69,7 +69,6 @@ function Init(reRoute){
 			var startingPoint = i;
 			var len = pu.length;
 			if(len > i){
-				console.log("old url was longer cleaning up");
 				for(var j = i; j < len; j++){
 					if(typeof routeMap[j][pu[j]].cleanup === "function") routeMap[j][pu[j]].cleanup(u);
 				}
@@ -111,11 +110,8 @@ function Init(reRoute){
 			}
 			if(divergencePoint !== undefined) requestChange(u,divergencePoint,pu,q);
 			if(divergencePoint === undefined){
-				console.log("NO DIFFERENCE WITH QUERY REMOVED");
 				for(var i = 0; i < len; i++){
-					console.log("PFU: ",pfu[i]," WITH QUERY: ",withQuery[i]);
 					if(pfu[i] !== withQuery[i]){
-						console.log("GET IN HERE DID IT?");
 						divergencePoint = i;
 						break;
 					}
@@ -132,8 +128,12 @@ function Init(reRoute){
 		var prvFullUrl = [];
 		//
 		window.onpopstate = function(){
-			prvUrl = iterateURL(document.location.hash,prvUrl);
+			prvUrl = iterateURL(document.location.hash,prvUrl,prvFullUrl);
 		};
+
+		var spu = channel.subscribe("setPrvUrl", function(url){
+			prvFullUrl = url;
+		});
 		
 		var su = channel.subscribe("setUrl", function(url) {
 			history.pushState({}, "", url);
