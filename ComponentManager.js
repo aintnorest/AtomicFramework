@@ -31,12 +31,23 @@ function ComponentManager(options){
 	this.activeLayout = {};
 	this.subscriptions = [];
 	this.cleanupQueue = [];
-
+	//LISTEN FOR RESIZE
+	if(options.resize){
+		this.subscriptions.push(postal.subscribe({
+			channel : "ComponentManager",
+			topic   : "resizeState",
+			callback: function(d){
+				console.log(this)
+				if(this.view.layouts[this.activeLayout[0][0]].resize) this.view.layouts[this.activeLayout[0][0]].resize(grabSize.call(this));
+			}.bind(this)
+		}));
+	}
+	//
 	return this;
 }
 //
 function Resize(){
-		
+	console.log("resize",this)
 }
 //
 function Consolidate(newLayout,oldLayout){
@@ -52,15 +63,17 @@ function Consolidate(newLayout,oldLayout){
 			delete this.subComponents[dif[i]];
 		}
 	}
-	console.log("List of Components",this.subComponents);
-
+}
+//
+function grabSize(){
+	return [(this.view.size[0] === undefined) ? window.innerWidth : this.view.size[0],(this.view.size[1] === undefined) ? window.innerHeight : this.view.size[1]];
 }
 //
 ComponentManager.prototype.initialize = function initialize(layout){
 	if(this.consolidation)Consolidate.call(this,layout,this.activeLayout);
 	this.activeLayout = layout;
 	//
-	var s = [(this.view.size[0] === undefined) ? window.innerWidth : this.view.size[0],(this.view.size[1] === undefined) ? window.innerHeight : this.view.size[1]];
+	var s = grabSize.call(this);
 	//
 	_.forOwnRight(this.activeLayout,function(value,key){
 		if(key !== "components"){
@@ -113,19 +126,19 @@ ComponentManager.prototype.cleanup = function cleanup(){
 //
 
 //RESIZE LISTENER
-/*
+
 function _resizeListener(){
-	var _publishResize = _.throttle(function(){
+	var _publishResize = _.debounce(function(){
 		postal.publish({
 			channel: "ComponentManager",
 			topic  : "resizeState",
 			data   : [window.innerWidth,window.innerHeight]
 		});
-	},1250,{'trailing':true});
+	},1250,{'trailing':true,'leading':false});
 	//
 	window.addEventListener('resize',_publishResize);
 }
 _resizeListener();
-*/
+
 module.exports = ComponentManager;
 //

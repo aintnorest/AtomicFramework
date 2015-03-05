@@ -61,10 +61,10 @@ function makeCorsRequest(u,type,promise,data,err,pageId){
         	} else errorHandlers[d.target.status](d);
         }, false);
         xhr.addEventListener("error", function(d){
-        	console.log("error", d);
+        	//console.log("error", d);
         }, false);
         xhr.addEventListener("abort", function(d){
-        	console.log("abort", d);
+        	//console.log("abort", d);
         }, false);
         //SEND
     	if(type === "GET") xhr.send();
@@ -106,7 +106,7 @@ function ServerHandler(){
 	var Ready = false;
 
 	var LoginSub = channel.subscribe("Login", function(d){
-		console.log("ATTEMPINT LOGIN THIS IS WHAT WAS PASSED",d)
+		//console.log("ATTEMPINT LOGIN THIS IS WHAT WAS PASSED",d)
 		/* Ensure Nonce before Login Attempt */
 		if(typeof d === "object") D = d;
 		if(d === true) Ready = true;
@@ -119,7 +119,7 @@ function ServerHandler(){
 					url: "views/v1/session",
 					force: false,
 					promise: function(e,ext){
-						console.log("CONSOLE THE LOGIN DATA FOR VALIDATION",e)
+						//console.log("CONSOLE THE LOGIN DATA FOR VALIDATION",e)
 						if(count > 5){
 							count = 0;
 							channel.publish("post",{
@@ -146,7 +146,7 @@ function ServerHandler(){
 				data: r,
 				force: false,
 				promise: function(d){
-					console.log("Response from server",d);
+					//console.log("Response from server",d);
 					_.delay(pollLogin,3000);
 				}
 			});
@@ -155,7 +155,7 @@ function ServerHandler(){
 }
 //
 function fireRequest(data,type){
-	console.log("Type: ",type," Url: ",data.url);
+	//console.log("Type: ",type," Url: ",data.url);
 	makeCorsRequest(data.url, type, data.promise, data.data, data.err, data.pageId);
 }
 //

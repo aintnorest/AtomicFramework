@@ -59,29 +59,37 @@ function Init(reRoute){
 	//
 	function listenForReady(u,i,pu,q){
 		var sub = channel.subscribe("page." + i + ".ready", function(){
-			console.log("New Page finished moving to next level",i);
 			sub.unsubscribe();
 			requestChange(u,i + 1,pu,q);
 		});
 	}
 	// Send a cleanup then send a change then once a ready is received fire next level
 	function requestChange(u, i, pu, q){
-		if(!u[i]) return;
+		if(!u[i]){
+			var startingPoint = i;
+			var len = pu.length;
+			if(len > i){
+				console.log("old url was longer cleaning up");
+				for(var j = i; j < len; j++){
+					if(typeof routeMap[j][pu[j]].cleanup === "function") routeMap[j][pu[j]].cleanup(u);
+				}
+			}
+			return;
+		}
 		if(pu[i]){
-			console.log(routeMap,pu,i)
 		 	if(routeMap[i][pu[i]]){
-		 	 	if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup();
+		 	 	if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup(u);
 		 	}
 		}
-		console.log("THIS IS WHERE IM PUSHING IT THROUGH Q I: ",q,i);
 		setTimeout(function(){
 			channel.publish("page." + i + ".change",{url:u[i], query:q[i]});
 		},1);
 		listenForReady(u,i,pu,q);
 	}
 	//URL ITERATION
-	function iterateURL(url, pu){
+	function iterateURL(url, pu, pfu){
 		var u = url.split("/");
+		var withQuery = _.cloneDeep(u);
 		var q = [];
 		var len = u.length;
 		var divergencePoint;
@@ -92,22 +100,36 @@ function Init(reRoute){
 			q.push( (splitVersion[1]) ? splitVersion[1] : undefined );
 		}
 		//
-		for(var i = 0; i < len; i++){
+		if(pu === []) requestChange(u,0,pu,q);
+		else {
+			for(var i = 0; i < len; i++){
 
-			if(pu[i] !== u[i]){
-				divergencePoint = i;
-				break;
+				if(pu[i] !== u[i]){
+					divergencePoint = i;
+					break;
+				}
+			}
+			if(divergencePoint !== undefined) requestChange(u,divergencePoint,pu,q);
+			if(divergencePoint === undefined){
+				console.log("NO DIFFERENCE WITH QUERY REMOVED");
+				for(var i = 0; i < len; i++){
+					console.log("PFU: ",pfu[i]," WITH QUERY: ",withQuery[i]);
+					if(pfu[i] !== withQuery[i]){
+						console.log("GET IN HERE DID IT?");
+						divergencePoint = i;
+						break;
+					}
+				}
+				requestChange(u,divergencePoint,pu,q);
 			}
 		}
-		console.log("u: ",u," p: ",pu);
-		if(divergencePoint !== undefined) requestChange(u,divergencePoint,pu,q);
-		if(divergencePoint === undefined) requestChange(u,0,pu,q);
-		return u;
+		return {yQ:withQuery, nQ:u};
 	}
 	//
 	if(initialized) return;
 	else {
 		var prvUrl = [];
+		var prvFullUrl = [];
 		//
 		window.onpopstate = function(){
 			prvUrl = iterateURL(document.location.hash,prvUrl);
@@ -115,7 +137,9 @@ function Init(reRoute){
 		
 		var su = channel.subscribe("setUrl", function(url) {
 			history.pushState({}, "", url);
-			prvUrl = iterateURL(url,prvUrl);
+			var urls = iterateURL(url,prvUrl,prvFullUrl);
+			prvUrl = urls.nQ;
+			prvFullUrl = urls.yQ;
 		});
 		/*
 		var sou = channel.subscribe("setOldUrl", function(url){
