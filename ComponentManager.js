@@ -59,7 +59,7 @@ function Consolidate(newLayout,oldLayout){
 	for(var i = 0; i < dLen;i++){
 		console.log("CLEANING UP: ",dif[i]);
 		if(this.subComponents[dif[i]]) {
-			this.subComponents[dif[i]].cleanup();
+			if(this.subComponents[dif[i]].cleanup)this.subComponents[dif[i]].cleanup();
 			delete this.subComponents[dif[i]];
 		}
 	}
@@ -132,7 +132,7 @@ function _resizeListener(){
 		postal.publish({
 			channel: "ComponentManager",
 			topic  : "resizeState",
-			data   : [window.innerWidth,window.innerHeight]
+			data   : [document.documentElement.clientWidth,document.documentElement.clientHeight]
 		});
 	},1250,{'trailing':true,'leading':false});
 	//

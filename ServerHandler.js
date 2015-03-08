@@ -48,6 +48,7 @@ function makeCorsRequest(u,type,promise,data,err,pageId){
 	var url = baseURL + u;
 	//
 	function sendRequest(){
+		console.log("MAKE REQUEST");
 		var xhr = createCorsRequest(type,url);
 		if(!xhr) return;
 		//HEADERS
@@ -55,16 +56,18 @@ function makeCorsRequest(u,type,promise,data,err,pageId){
         xhr.setRequestHeader('X-Session-Token', M.sessionToken);
         //HANDLERS
         xhr.addEventListener("load", function(d){
+        	console.log("load",d);
         	if(d.currentTarget.status >= 200 && d.currentTarget.status < 300){
         		if(typeof d.target.response === "string" && d.target.response != "") fullFillPromise(JSON.parse(d.target.response),d);
         		else fullFillPromise(d,d);
         	} else errorHandlers[d.target.status](d);
         }, false);
         xhr.addEventListener("error", function(d){
-        	//console.log("error", d);
+        	alert("There has been a server error please check your internet connection and try again.");
+        	console.log("ERROR: ",d);
         }, false);
         xhr.addEventListener("abort", function(d){
-        	//console.log("abort", d);
+        	console.log("abort", d);
         }, false);
         //SEND
     	if(type === "GET") xhr.send();
