@@ -3,7 +3,7 @@ var postal = require("postal.js");
 var hmacSHA256 = require("crypto-js/hmac-sha256");
 var encBase64 = require("crypto-js/enc-base64");
 //VARS
-var baseURL = "https://legalyak.com/";
+var baseURL;
 var channel = postal.channel("ServerHandler");
 var subs = []; //ARRAY OF POSTAL SUBS TO BE CLEANED UP.
 //MODEL
@@ -82,7 +82,8 @@ function makeCorsRequest(u,type,promise,data,err,pageId){
 	sendRequest();
 }
 
-function ServerHandler(){
+function ServerHandler(bu){
+	baseURL = bu;
 	M.cnonce = randomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
 	var cnStrng = JSON.stringify({cnonce: M.cnonce});
 	/* Setup the connection */
