@@ -90,6 +90,7 @@ function Delegation(gestures){
 	}
 	//
 	function _domCrawl(target){
+		if(target === null) return false;
 		if(target['data-gesture']) return target;
 		else {
 			//Check parent's
