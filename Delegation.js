@@ -28,7 +28,7 @@ function Delegation(gestures){
 		e.stopPropagation();
 		if(e.target.nodeName !== 'SELECT')e.preventDefault();
 		e.target.focus();
-		if(e.target)
+		//if(e.target)
 		var nT = _check(e);
 		var nP = _coordinates(e);
 		var tm = Date.now();
@@ -62,7 +62,9 @@ function Delegation(gestures){
 	function _pointermove(e){
 		e.stopPropagation();
 		eLog.curPoint = _coordinates(e);
-		eLog.curTarget = _domCrawl(e.target);
+		var cX = (e.clientX !== undefined) ? e.clientX : e.touches[0].clientX;
+		var cY = (e.clientY !== undefined) ? e.clientY : e.touches[0].clientY;
+		eLog.curTarget = _domCrawl(document.elementFromPoint(cX,cY));
 		if(eLog.strTarget['data-gesture']) _pass('pointermove',e);
 	}
 	function _pointercancel(e){

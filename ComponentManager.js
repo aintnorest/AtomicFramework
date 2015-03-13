@@ -66,7 +66,9 @@ function Consolidate(newLayout,oldLayout){
 }
 //
 function grabSize(){
-	return [(this.view.size[0] === undefined) ? window.innerWidth : this.view.size[0],(this.view.size[1] === undefined) ? window.innerHeight : this.view.size[1]];
+	var s = [(this.view.size[0] === undefined) ? window.innerWidth : this.view.size[0],(this.view.size[1] === undefined) ? window.innerHeight : this.view.size[1]]; 
+	this.view.size = s;
+	return s;
 }
 //
 ComponentManager.prototype.initialize = function initialize(layout){

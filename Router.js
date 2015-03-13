@@ -58,6 +58,7 @@ function Init(reRoute){
 	defaultOtherwise = (reRoute) ? reRoute : function(){console.log("Setup a Default Otherwise Route")};
 	//
 	function listenForReady(u,i,pu,q){
+		console.log("listenforready");
 		var sub = channel.subscribe("page." + i + ".ready", function(){
 			sub.unsubscribe();
 			requestChange(u,i + 1,pu,q);
@@ -65,19 +66,26 @@ function Init(reRoute){
 	}
 	// Send a cleanup then send a change then once a ready is received fire next level
 	function requestChange(u, i, pu, q){
+		console.log("requesting the change");
 		if(!u[i]){
 			var startingPoint = i;
 			var len = pu.length;
 			if(len > i){
 				for(var j = i; j < len; j++){
-					if(typeof routeMap[j][pu[j]].cleanup === "function") routeMap[j][pu[j]].cleanup(u);
+					if(typeof routeMap[j][pu[j]].cleanup === "function"){
+						console.log("CLEANUP THE MAP", routeMap[j],pu,j,u);
+						routeMap[j][pu[j]].cleanup(u);
+					}
 				}
 			}
 			return;
 		}
 		if(pu[i]){
 		 	if(routeMap[i][pu[i]]){
-		 	 	if(typeof routeMap[i][pu[i]].cleanup === "function")routeMap[i][pu[i]].cleanup(u);
+		 	 	if(typeof routeMap[i][pu[i]].cleanup === "function"){
+		 	 		console.log("CLEANUP THE MAP",i,pu,u);
+		 	 		routeMap[i][pu[i]].cleanup(u);
+		 	 	}
 		 	}
 		}
 		setTimeout(function(){
@@ -99,6 +107,7 @@ function Init(reRoute){
 			q.push( (splitVersion[1]) ? splitVersion[1] : undefined );
 		}
 		//
+		console.log("ITERATE-URL: ",url,pu,pfu);
 		if(pu === []) requestChange(u,0,pu,q);
 		else {
 			for(var i = 0; i < len; i++){
